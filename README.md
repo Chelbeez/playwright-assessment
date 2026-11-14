@@ -11,6 +11,9 @@ add-to-cart dialog, and the every-third-item promo).
 33 tests · chromium / firefox / webkit · ~30s wall clock
 ```
 
+See **[PLAN.md](PLAN.md)** for the architecture rationale, contributor conventions, risk register and the
+hardening backlog.
+
 ---
 
 ## Quick start
