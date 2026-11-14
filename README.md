@@ -8,7 +8,7 @@ payment → verify success** — plus the three special features on the site (ti
 add-to-cart dialog, and the every-third-item promo).
 
 ```
-33 tests · chromium / firefox / webkit · ~30s wall clock
+51 tests · chromium / firefox / webkit · negative paths included
 ```
 
 See **[PLAN.md](PLAN.md)** for the architecture rationale, contributor conventions, risk register and the
@@ -54,6 +54,7 @@ src/
     AddToCartDialog.ts right-click confirmation
   fixtures/
     test.ts         the only export specs import: `test` and `expect`
+    menuStub.ts     route-level control of the catalogue: payload, status, latency
   data/
     menu.ts         typed copy of the app's catalogue + money helpers
     customer.ts     per-test customer factory
@@ -64,13 +65,15 @@ tests/
 
 ## Coverage
 
-| Area               | Spec                   | Notes                                                              |
-| ------------------ | ---------------------- | ------------------------------------------------------------------ |
-| Purchase journey   | `purchase.spec.ts`     | Required flow, including a run where the promo interrupts checkout |
-| Cart               | `cart.spec.ts`         | Empty state, quantity stepper, remove-all                          |
-| Promo pop-up       | `promo.spec.ts`        | Fires on the 3rd item only; accept and decline paths               |
-| Title translation  | `translate.spec.ts`    | Bonus (a) — double-click, plus every menu item                     |
-| Right-click dialog | `context-menu.spec.ts` | Bonus (b) — confirm and cancel                                     |
+| Area                 | Spec                      | Notes                                                              |
+| -------------------- | ------------------------- | ------------------------------------------------------------------ |
+| Purchase journey     | `purchase.spec.ts`        | Required flow, including a run where the promo interrupts checkout |
+| Cart                 | `cart.spec.ts`            | Empty state, quantity stepper, remove-all                          |
+| Promo pop-up         | `promo.spec.ts`           | Fires on the 3rd item only; accept and decline paths               |
+| Title translation    | `translate.spec.ts`       | Bonus (a) — double-click, plus every menu item                     |
+| Right-click dialog   | `context-menu.spec.ts`    | Bonus (b) — confirm and cancel                                     |
+| Checkout guards      | `checkout-guards.spec.ts` | Empty form, malformed email, dismissing the dialog mid-checkout    |
+| Catalogue resilience | `catalogue.spec.ts`       | API 500, custom payload, artificially slow response                |
 
 ## Design decisions
 
@@ -93,6 +96,10 @@ payload. A test gets a fresh browser context (and therefore an empty cart) autom
 **Test data is separate from test logic.** Prices and names come from `src/data/menu.ts`; customer details
 come from `buildCustomer()`, which generates a unique email per test. The menu payload is stubbed at the
 network layer, so a price change in the live shop cannot silently invalidate assertions.
+
+**The network is a fixture, not a mystery.** All catalogue traffic flows through `stubMenu()` in
+`src/fixtures/menuStub.ts`. A spec can pin a payload, return a 500, or inject latency in one call — which is
+how the resilience tests describe an unhappy backend without touching application code or adding waits.
 
 **Zero hard-coded sleeps.** There is no `waitForTimeout` anywhere, and lint fails the build if one appears —
 the rule is enforced, not just documented. Waiting is done with web-first assertions and auto-waiting.

@@ -1,10 +1,10 @@
 import { test as base, expect } from '@playwright/test';
-import { COFFEE_MENU } from '../data/menu';
 import { AddToCartDialog } from '../pages/AddToCartDialog';
 import { CartPage } from '../pages/CartPage';
 import { CheckoutDialog } from '../pages/CheckoutDialog';
 import { MenuPage } from '../pages/MenuPage';
 import { PromoDialog } from '../pages/PromoDialog';
+import { stubMenu } from './menuStub';
 
 /**
  * The only place tests should import `test`/`expect` from.
@@ -32,7 +32,7 @@ export type Fixtures = {
 export const test = base.extend<Fixtures>({
   stubbedMenu: [
     async ({ page }, use) => {
-      await page.route('**/list.json', (route) => route.fulfill({ json: COFFEE_MENU }));
+      await stubMenu(page);
       await use();
     },
     { auto: true },

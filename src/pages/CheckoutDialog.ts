@@ -11,10 +11,23 @@ import type { Customer } from '../data/customer';
 export class CheckoutDialog {
   readonly heading: Locator;
   readonly form: Locator;
+  readonly closeButton: Locator;
 
   constructor(page: Page) {
     this.heading = page.getByRole('heading', { name: 'Payment details' });
     this.form = page.getByRole('form', { name: 'Payment form' });
+
+    // The close control is an icon-only button whose text is a font glyph ("A-"), so it
+    // has no meaningful accessible name. Scope it to the heading's container instead.
+    this.closeButton = this.heading.locator('xpath=..').getByRole('button');
+  }
+
+  get nameInput(): Locator {
+    return this.form.getByLabel('Name', { exact: true });
+  }
+
+  get emailInput(): Locator {
+    return this.form.getByLabel('Email', { exact: true });
   }
 
   async expectVisible(): Promise<void> {
@@ -27,8 +40,14 @@ export class CheckoutDialog {
   }
 
   async fill(customer: Customer): Promise<void> {
-    await this.form.getByLabel('Name', { exact: true }).fill(customer.name);
-    await this.form.getByLabel('Email', { exact: true }).fill(customer.email);
+    await this.nameInput.fill(customer.name);
+    await this.emailInput.fill(customer.email);
+  }
+
+  /** Abandon checkout without submitting (the icon-only close control). */
+  async dismiss(): Promise<void> {
+    await this.closeButton.click();
+    await this.expectHidden();
   }
 
   /**

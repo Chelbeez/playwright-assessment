@@ -15,8 +15,13 @@ import { BasePage } from './BasePage';
 export class MenuPage extends BasePage {
   static readonly path = '/';
 
-  async open(): Promise<void> {
+  /** Navigate without assuming the catalogue loaded (used by resilience specs). */
+  async goto(): Promise<void> {
     await this.page.goto(MenuPage.path);
+  }
+
+  async open(): Promise<void> {
+    await this.goto();
     await expect(this.page.getByRole('heading', { level: 4 }).first()).toBeVisible();
   }
 

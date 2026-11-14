@@ -11,6 +11,8 @@ export default tseslint.config(
       'test-results/**',
       'blob-report/**',
       'package-lock.json',
+      // Local checkout of this repo, if someone keeps a clean clone alongside it.
+      'Repo/**',
     ],
   },
 
@@ -19,6 +21,13 @@ export default tseslint.config(
 
   {
     files: ['**/*.ts'],
+    languageOptions: {
+      parserOptions: {
+        // Anchor TS resolution to this project so a sibling clone (with its own
+        // tsconfig.json) cannot make the parser ambiguous.
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
     rules: {
       'no-undef': 'off',
       '@typescript-eslint/consistent-type-imports': 'error',

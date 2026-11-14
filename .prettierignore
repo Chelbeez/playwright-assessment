@@ -3,3 +3,5 @@ playwright-report/
 test-results/
 blob-report/
 package-lock.json
+# Local clean checkout kept beside the working copy, if present.
+Repo/

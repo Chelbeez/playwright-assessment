@@ -34,7 +34,8 @@ payment → verify success) with a foundation a junior engineer can extend safel
 | 5     | CI pipeline, local verification, publishing              | ✅ done |
 | 6     | Hardening backlog (§9)                                   | ⏳ open |
 
-Current baseline: **33 tests**, all passing on Chromium, Firefox and WebKit, ~30s locally, ~1m30s in CI.
+Current baseline: **51 tests**, all passing on Chromium, Firefox and WebKit, including the negative and
+resilience paths added in the first hardening pass.
 
 ## 3. Architecture
 
@@ -79,14 +80,15 @@ Findings from recon that shaped the locators:
 
 ## 5. Determinism
 
-| Risk                                   | Mitigation                                            |
-| -------------------------------------- | ----------------------------------------------------- |
-| Live catalogue changes                 | `/list.json` stubbed with the pinned fixture          |
-| App's artificial `makeItSlow()` delay  | web-first assertions poll; no delay is written down   |
-| Success snackbar disappears after 3.6s | assert immediately on the toast, not after navigating |
-| Promo overlay intercepting clicks      | suites explicitly accept/decline before continuing    |
-| Several coffees share a name prefix    | exact matching                                        |
-| Shared state between tests             | new context per test; unique customer email per test  |
+| Risk                                   | Mitigation                                                                          |
+| -------------------------------------- | ----------------------------------------------------------------------------------- |
+| Live catalogue changes                 | `/list.json` stubbed with the pinned fixture                                        |
+| App's artificial `makeItSlow()` delay  | web-first assertions poll; no delay is written down                                 |
+| Success snackbar disappears after 3.6s | assert immediately on the toast, not after navigating                               |
+| Promo overlay intercepting clicks      | suites explicitly accept/decline before continuing                                  |
+| Several coffees share a name prefix    | exact matching                                                                      |
+| Shared state between tests             | new context per test; unique customer email per test                                |
+| Catalogue API fails or is slow         | `stubMenu()` returns a 500 or injects latency; assertions wait on the real response |
 
 **The rule:** if a test needs `waitForTimeout`, the framework is missing an assertion or a fixture. Fix the
 framework, not the test. Lint enforces it (`playwright/no-wait-for-timeout` + a `no-restricted-syntax` ban on
@@ -126,7 +128,8 @@ traces and videos are uploaded on every run, including failures.
 
 ## 9. Hardening backlog
 
-Ordered by value per hour:
+Ordered by value per hour. Already landed in the hardening pass: negative checkout cases
+(`checkout-guards.spec.ts`) and catalogue failure/latency coverage (`catalogue.spec.ts`).
 
 | Priority | Item                                                                          | Notes                                             |
 | -------- | ----------------------------------------------------------------------------- | ------------------------------------------------- |
@@ -134,8 +137,6 @@ Ordered by value per hour:
 | P1       | Shard the matrix (`--shard=1/2`) once the suite exceeds ~3 minutes            | `strategy.matrix.shard`                           |
 | P2       | Visual assertions on the cart table                                           | `toHaveScreenshot`, baselines per browser         |
 | P2       | Accessibility smoke check (axe-core) on menu and cart                         | catches missing labels/roles                      |
-| P2       | Negative checkout cases: empty name/email, invalid email, closing the modal   | `required` attributes are enforced by the browser |
-| P3       | Network-failure test (`/list.json` 500) → assert the empty/failed menu state  | uses `route.fulfill({ status: 500 })`             |
 | P3       | API-level setup for non-UI preconditions                                      | only worth it once a real API exists              |
 | P3       | Report publishing (GitHub Pages or a dashboard)                               | artifacts are enough for now                      |
 | P4       | Contract test against `/list.json` shape                                      | detects catalogue-schema drift before UI tests do |
