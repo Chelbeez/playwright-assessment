@@ -11,9 +11,6 @@ add-to-cart dialog, and the every-third-item promo).
 51 tests · chromium / firefox / webkit · negative paths included
 ```
 
-See **[PLAN.md](PLAN.md)** for the architecture rationale, contributor conventions, risk register and the
-hardening backlog.
-
 ---
 
 ## Quick start
